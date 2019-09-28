@@ -1,0 +1,5 @@
+mysql -uroot -proot@localhost mysql_note -e"INSERT INTO post VALUES(1, 'title', 'content', 'url');"
+
+npm run dev
+
+SELECT MySQLNotification(1, 2)

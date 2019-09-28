@@ -17,23 +17,55 @@ const SERVER_ADDR = argv.host ? argv.host.replace(/['"]+/g, '') : '127.0.0.1'
 // create a listening socket
 net.createServer((sock) => {
   sock.on('data', (data) => {
-    sock.end()
-    sock.destroy()
-
+    console.log("data received: " + data);
+    console.log("on port: " + SERVER_PORT);
+    //sock.end()
+    //sock.destroy()
     // send data to all connected clients
     for (let i = 0; i < connections.length; i++) {
       connections[i].sendUTF(data)
     }
   })
   sock.on('close', (data) => {
-
+    console.log((new Date()) + ' socket is closed on port ' + SERVER_PORT)
   })
-}).listen(SERVER_PORT)
+}).listen(SERVER_PORT, () => {
+  console.log((new Date()) + ' socket is listening on port ' + SERVER_PORT)
+})
 
 // create a http server
 const server = http.createServer((request, response) => {
   console.log((new Date()) + ' Received request for ' + request.url)
-  response.writeHead(404)
+  response.writeHead(200, { 'Content-Type': 'text/html' });
+  output = '<!DOCTYPE html>\n' +
+        '<html>\n' +
+        '    <head>\n' +
+        '        <title>Example of a user defined function (UDF) in MySQL</title>\n' +
+        '        <meta charset="UTF-8">\n' +
+        '        <meta name="viewport" content="width=device-width, initial-scale=1.0">\n' +
+        '        <script\n' +
+        '                src="https://code.jquery.com/jquery-3.3.1.slim.min.js"\n' +
+        '                integrity="sha256-3edrmyuQ0w65f8gfBsqowzjJe2iM6n0nKciPUp8y+7E="\n' +
+        '                crossorigin="anonymous"></script>\n' +
+        '        <script>\n' +
+        '            $(document).ready(function() {\n' +
+        '                  console.log("creating socket client...");\n' + 
+        '               var ws = new WebSocket(\'ws://' + SERVER_ADDR + ':' + WEBSOCKET_PORT + '\', \'echo-protocol\');\n' +
+        '               ws.onmessage = function(event) {\n' +
+        '                  console.log("data received: "+event.data);\n' +        
+        '                   $(\'body\').append(event.data + "<br />");\n' +
+        '               };\n' +
+        '            });\n' +
+        '        </script>\n' +
+        '    </head>\n' +
+        '    <body>\n' +
+        '    <div align="middle">\n' +
+        '    <h2>Wellcome</h2>\n' +
+        '    </div>\n' +
+        '    </body>\n' +
+        '</html>'
+
+  response.write(output);
   response.end()
 })
 server.listen(WEBSOCKET_PORT, () => {
@@ -87,9 +119,9 @@ function createTemplate () {
   })
 }
 
-if (!fs.existsSync('index.html')) {
+/*if (!fs.existsSync('index.html')) {
   createTemplate()
-}
+}*/
 
 wsServer.on('request', (request) => {
   if (!originIsAllowed(request.origin)) {
@@ -102,10 +134,10 @@ wsServer.on('request', (request) => {
   connections.push(connection)
   connection.on('message', (message) => {
     if (message.type === 'utf8') {
-      console.log('Received Message: ' + message.utf8Data)
+      console.log('(connections): Received Message: ' + message.utf8Data)
       connection.sendUTF(message.utf8Data)
     } else if (message.type === 'binary') {
-      console.log('Received Binary Message of ' + message.binaryData.length + ' bytes')
+      console.log('(connections): Received Binary Message of ' + message.binaryData.length + ' bytes')
       connection.sendBytes(message.binaryData)
     }
   })

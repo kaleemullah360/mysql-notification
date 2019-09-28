@@ -1,22 +1,20 @@
 #ifdef STANDARD
-    /* STANDARD is defined. Don't use any MySQL functions */
-    #include <stdlib.h>
-    #include <stdio.h>
-    #include <string.h>
-    #ifdef __WIN__
-    typedef unsigned __int64 ulonglong;     /* Microsoft's 64 bit types */
-    typedef __int64 longlong;
-    #else
-    typedef unsigned long long ulonglong;
-    typedef long long longlong;
-    #endif /*__WIN__*/
+/* STANDARD is defined. Don't use any MySQL functions */
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#ifdef __WIN__
+typedef unsigned __int64 ulonglong;     /* Microsoft's 64 bit types */
+typedef __int64 longlong;
 #else
-    #include <string.h>
-    typedef unsigned long long ulonglong;
-    typedef long long longlong;
+typedef unsigned long long ulonglong;
+typedef long long longlong;
+#endif /*__WIN__*/
+#else
+#include <string.h>
+#include <my_global.h>
+#include <my_sys.h>
 #endif
-
-
 #include <mysql.h>
 #include <ctype.h>
 #include <sys/socket.h>
@@ -43,7 +41,7 @@ enum TRIGGER_TYPE {
     TRIGGER_DELETE = 4
 };
 
-bool MySQLNotification_init(UDF_INIT *initid,
+my_bool MySQLNotification_init(UDF_INIT *initid,
                                UDF_ARGS *args,
                                char *message) {
     // allocate memory here
